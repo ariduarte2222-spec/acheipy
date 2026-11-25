@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACHEI · Compre e venda perto de você</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--o:#FF6A00;--od:#e05d00;--t:#1b1b1f;--m:#6b6b76;--b:#ececf0;--bg:#fafafb}
+*{box-sizing:border-box;margin:0}body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--t);background:#fff}
+a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}
+header{position:sticky;top:0;z-index:5;background:#fffe;backdrop-filter:blur(8px);border-bottom:1px solid var(--b);padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.logo{font-weight:800;font-size:24px;color:var(--o);letter-spacing:-1px}nav{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn{border:1px solid var(--b);background:#fff;padding:9px 16px;border-radius:99px;cursor:pointer;font-weight:600;transition:.2s}
+.btn:hover{border-color:var(--o);color:var(--o)}.btn.p{background:var(--o);color:#fff;border-color:var(--o)}.btn.p:hover{background:var(--od);color:#fff}
+.btn.s{padding:5px 12px;font-size:13px}.btn.d{color:#c00}
+main{max-width:1100px;margin:auto;padding:16px;animation:in .3s}@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.search{display:flex;gap:8px;flex:1;min-width:220px;max-width:520px;margin:auto}.search input{flex:1}
+input,select,textarea{border:1px solid var(--b);border-radius:12px;padding:10px 12px;width:100%;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid #ff6a0055;border-color:var(--o)}
+.hero{background:linear-gradient(135deg,#fff3ea,#fff);border-radius:20px;padding:28px 20px;margin-bottom:20px}.hero h1{font-size:clamp(24px,5vw,38px);letter-spacing:-1px}
+.cats{display:flex;gap:10px;overflow-x:auto;padding:6px 0 14px}.cat{flex:none;text-align:center;padding:12px 16px;border:1px solid var(--b);border-radius:16px;cursor:pointer;min-width:92px;transition:.2s}
+.cat:hover,.cat.on{border-color:var(--o);background:#fff3ea;transform:translateY(-2px)}.cat span{display:block;font-size:26px}.cat small{font-weight:600}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:10px 0 18px}
+h2{margin:22px 0 12px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.card{border:1px solid var(--b);border-radius:16px;overflow:hidden;transition:.25s;background:#fff;position:relative}.card:hover{transform:translateY(-4px);box-shadow:0 10px 28px #0001}
+.card img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--bg)}.card div{padding:10px 12px}.price{font-weight:800;color:var(--o)}.card small,.muted{color:var(--m)}
+.tag{position:absolute;top:8px;left:8px;background:var(--o);color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700}.tag.g{background:#222}
+.sellers{display:flex;gap:12px;overflow-x:auto}.seller{flex:none;text-align:center;width:110px}.av{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#ffe1cc;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:var(--o)}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}@media(max-width:760px){.two{grid-template-columns:1fr}}
+.gal img{width:100%;border-radius:16px;aspect-ratio:4/3;object-fit:cover}.thumbs{display:flex;gap:6px;margin-top:8px;overflow-x:auto}.thumbs img{width:64px;height:64px;border-radius:10px;cursor:pointer;object-fit:cover}
+form.f{display:grid;gap:10px;max-width:560px}.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}.row{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--b);flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.stat{background:var(--bg);border-radius:16px;padding:16px}.stat b{font-size:26px;color:var(--o);display:block}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:99px;opacity:0;transition:.3s;pointer-events:none;z-index:9}#toast.on{opacity:1}
+footer{text-align:center;color:var(--m);padding:30px;font-size:14px}
+</style></head><body>
+<header><a class="logo" href="#/">ACHEI</a>
+<form class="search" onsubmit="event.preventDefault();location.hash='#/?q='+encodeURIComponent(this.q.value)"><input name="q" placeholder="O que você procura?"><button class="btn p">Buscar</button></form>
+<nav id="nav"></nav></header>
+<main id="app"></main>
+<footer>© ACHEI · <a href="#/termos">Termos de uso</a> · <a href="#/privacidade">Privacidade</a></footer>
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+// ====== CONFIGURAÇÃO: cole os dados do seu projeto Supabase ======
+const { SUPABASE_URL, SUPABASE_KEY } = window.ACHEI_CONFIG || {};
+if (!SUPABASE_KEY || SUPABASE_KEY.startsWith('COLE')) document.body.insertAdjacentHTML('afterbegin', '<p style="padding:12px;background:#fee;color:#900">Falta colocar a chave publicável no arquivo config.js</p>');
+// ================================================================
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = s => document.querySelector(s), app = $('#app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
+const gs = n => '₲ ' + Number(n).toLocaleString('es-PY');
+const ago = d => new Date(d).toLocaleDateString('pt-BR');
+const DEPTS = ['Asunción','Central','Alto Paraná','Itapúa','Cordillera','Paraguarí','Caaguazú','Concepción','San Pedro','Amambay','Canindeyú','Guairá','Misiones','Ñeembucú','Caazapá','Presidente Hayes','Boquerón','Alto Paraguay'];
+const CONDS = ['novo', 'seminovo', 'usado', 'com defeito'];
+let me = null, prof = null, cats = [];
+const toast = m => { const t = $('#toast'); t.textContent = m; t.className = 'on'; setTimeout(() => t.className = '', 2500) };
+const need = () => me ? true : (toast('Entre ou cadastre-se primeiro'), authBox(), false);
+const opts = (a, sel) => a.map(x => `<option ${x == sel ? 'selected' : ''}>${esc(x)}</option>`).join('');
+const avatar = p => p?.avatar_url ? `<img class="av" src="${esc(p.avatar_url)}">` : `<span class="av">${esc((p?.name || '?')[0])}</span>`;
+const card = l => `<a class="card" href="#/l/${l.id}">${l.featured ? '<span class="tag">Destaque</span>' : ''}${l.status == 'sold' ? '<span class="tag g">Vendido</span>' : ''}<img loading="lazy" src="${esc(l.images?.[0])}"><div><div class="price">${gs(l.price)}</div><div>${esc(l.title)}</div><small>${esc(l.city)} · ${ago(l.created_at)}</small></div></a>`;
+
+sb.auth.onAuthStateChange((_, s) => { setTimeout(async () => {
+  me = s?.user ?? null; prof = null;
+  try { if (me) prof = (await sb.from('profiles').select('*').eq('id', me.id).single()).data; } catch (e) { }
+  $('#nav').innerHTML = me
+    ? `<a class="btn p" href="#/new">Anunciar grátis</a><a class="btn" href="#/me">Minha conta</a>${prof?.is_admin ? '<a class="btn" href="#/admin">Admin</a>' : ''}<button class="btn" onclick="sb.auth.signOut();location.hash='#/'">Sair</button>`
+    : `<a class="btn p" href="#/new">Anunciar grátis</a><button class="btn" onclick="authBox('in')">Entrar</button><button class="btn" onclick="authBox('up')">Cadastrar</button>`;
+  route();
+}, 0); });
+function authBox(mode = 'in') {
+  const up = mode == 'up';
+  app.innerHTML = `<form class="f" id="af"><h2>${up ? 'Criar conta' : 'Entrar'}</h2>${up ? '<input name="name" placeholder="Nome" required minlength="2">' : ''}<input name="email" type="email" placeholder="E-mail" required><input name="pw" type="password" placeholder="Senha (mín. 6)" required minlength="6"><button class="btn p">${up ? 'Cadastrar' : 'Entrar'}</button><button type="button" class="btn" id="g">Continuar com Google</button><a class="muted" href="javascript:authBox('${up ? 'in' : 'up'}')">${up ? 'Já tenho conta' : 'Criar conta'}</a></form>`;
+  $('#g').onclick = () => sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin } });
+  $('#af').onsubmit = async e => {
+    e.preventDefault(); const f = e.target;
+    const r = up ? await sb.auth.signUp({ email: f.email.value, password: f.pw.value, options: { data: { full_name: f.name.value } } })
+      : await sb.auth.signInWithPassword({ email: f.email.value, password: f.pw.value });
+    if (r.error) return toast(r.error.message);
+    toast(up && !r.data.session ? 'Confirme seu e-mail para entrar' : 'Bem-vindo!'); if (r.data.session) location.hash = '#/';
+  };
+}
+window.onhashchange = route;
+let catErr = '';
+async function loadCats() {
+  if (cats.length) return;
+  const r = await sb.from('categories').select('*').order('id');
+  catErr = r.error ? (r.error.message || r.error.code || 'erro desconhecido') + ' (HTTP ' + r.status + ')' : (r.data?.length ? '' : 'a tabela voltou vazia (0 categorias, HTTP ' + r.status + ')');
+  if (r.error) toast('Erro ao carregar categorias'); else cats = r.data || [];
+}
+async function route() {
+  const [path, qs] = (location.hash.slice(2) || '').split('?'), [a, id] = path.split('/');
+  await loadCats();
+  const v = { '': () => home(new URLSearchParams(qs)), l: () => detail(id), u: () => seller(id), new: () => form(), edit: () => form(id), me: () => panel(), admin: () => admin(), termos: () => page('Termos de uso', 'Ao usar o ACHEI você se compromete a publicar apenas produtos legais e verdadeiros, tratar outros usuários com respeito e não praticar spam ou fraude. Anúncios que violem estas regras podem ser removidos e contas suspensas. O ACHEI apenas conecta compradores e vendedores e não participa das negociações. Taxa de serviço: para cada produto vendido por meio do ACHEI, o vendedor deve pagar uma taxa de 10% do valor do anúncio, registrada quando o anúncio é marcado como vendido. Quem tiver taxa pendente há mais de 7 dias não poderá publicar novos anúncios.'), privacidade: () => page('Política de privacidade', 'Coletamos nome, e-mail, cidade e WhatsApp apenas para o funcionamento da plataforma. O e-mail nunca é exibido publicamente. O WhatsApp só é usado para o botão de contato dos seus anúncios. Você pode editar ou excluir seus dados e anúncios a qualquer momento.') };
+  window.scrollTo(0, 0); (v[a] || v[''])();
+}
+const page = (t, x) => app.innerHTML = `<h2>${t}</h2><p style="max-width:640px;line-height:1.7">${x}</p>`;
+
+async function home(p) {
+  const q = p.get('q') || '', cat = p.get('cat') || '', city = p.get('city') || '', dep = p.get('dep') || '', cond = p.get('cond') || '', min = p.get('min') || '', max = p.get('max') || '', days = p.get('days') || '';
+  let rq = sb.from('listings').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(40);
+  if (q) rq = rq.ilike('title', `%${q.replace(/[%,]/g, '')}%`);
+  if (cat) rq = rq.eq('category_id', cat); if (city) rq = rq.ilike('city', `%${city.replace(/[%,]/g, '')}%`);
+  if (dep) rq = rq.eq('department', dep); if (cond) rq = rq.eq('condition', cond);
+  if (min) rq = rq.gte('price', min); if (max) rq = rq.lte('price', max);
+  if (days) rq = rq.gte('created_at', new Date(Date.now() - days * 864e5).toISOString());
+  const [r, f, s] = await Promise.all([rq, sb.from('listings').select('*').eq('status', 'active').eq('featured', true).limit(8), sb.from('top_sellers').select('*')]);
+  app.innerHTML = `<div class="hero"><h1>Achei! Compre e venda <span style="color:var(--o)">perto de você</span>.</h1><p class="muted" style="margin:8px 0 14px">Anunciar é grátis e leva um minuto.</p><a class="btn p" href="#/new">Anunciar grátis</a></div>
+  <div class="cats">${cats.map(c => `<a class="cat ${cat == c.id ? 'on' : ''}" href="#/?cat=${c.id}"><span>${c.icon}</span><small>${esc(c.name)}</small></a>`).join('')}</div>
+  <form class="filters" id="ff"><input name="city" placeholder="Cidade" value="${esc(city)}"><select name="dep"><option value="">Departamento</option>${opts(DEPTS, dep)}</select><select name="cond"><option value="">Estado</option>${opts(CONDS, cond)}</select><input name="min" type="number" placeholder="₲ mín." value="${esc(min)}"><input name="max" type="number" placeholder="₲ máx." value="${esc(max)}"><select name="days"><option value="">Qualquer data</option><option value="1" ${days == 1 ? 'selected' : ''}>Últimas 24h</option><option value="7" ${days == 7 ? 'selected' : ''}>7 dias</option><option value="30" ${days == 30 ? 'selected' : ''}>30 dias</option></select><button class="btn p">Filtrar</button></form>
+  ${f.data?.length && !q ? `<h2>Em destaque</h2><div class="grid">${f.data.map(card).join('')}</div>` : ''}
+  <h2>${q ? `Resultados para “${esc(q)}”` : 'Recém-anunciados'}</h2><div class="grid">${r.data?.map(card).join('') || ''}</div>${r.data?.length ? '' : '<p class="muted">Nenhum anúncio encontrado.</p>'}
+  ${s.data?.length ? `<h2>Vendedores recomendados</h2><div class="sellers">${s.data.map(x => `<a class="seller" href="#/u/${x.id}">${avatar(x)}<div><b>${esc(x.name)}</b></div><small class="muted">${x.total} anúncios</small></a>`).join('')}</div>` : ''}`;
+  $('#ff').onsubmit = e => { e.preventDefault(); const u = new URLSearchParams(new FormData(e.target)); if (q) u.set('q', q); [...u.keys()].forEach(k => !u.get(k) && u.delete(k)); location.hash = '#/?' + u }
+}
+
+async function detail(id) {
+  const { data: l } = await sb.from('listings').select('*,profiles(id,name,avatar_url,city,whatsapp),categories(name)').eq('id', id).single();
+  if (!l) return page('Anúncio não encontrado', '');
+  const [fv, sim] = await Promise.all([me ? sb.from('favorites').select('listing_id').eq('user_id', me.id).eq('listing_id', id) : { data: [] }, sb.from('listings').select('*').eq('status', 'active').eq('category_id', l.category_id).neq('id', id).limit(4)]);
+  const own = me?.id == l.user_id, wa = (l.profiles.whatsapp || '').replace(/\D/g, '');
+  app.innerHTML = `<div class="two"><div class="gal"><img id="big" src="${esc(l.images[0])}"><div class="thumbs">${l.images.map(i => `<img src="${esc(i)}" onclick="big.src=this.src">`).join('')}</div></div>
+  <div><div class="price" style="font-size:30px">${gs(l.price)}</div><h1 style="font-size:22px;margin:6px 0">${esc(l.title)} ${l.status == 'sold' ? '(Vendido)' : ''}</h1>
+  <p class="muted">${esc(l.city)}, ${esc(l.department)} · ${ago(l.created_at)} · ${esc(l.condition)} · ${esc(l.categories?.name)}</p>
+  <p style="margin:14px 0;white-space:pre-wrap;line-height:1.6">${esc(l.description)}</p>
+  <a href="#/u/${l.profiles.id}" class="row" style="justify-content:flex-start;gap:12px">${avatar(l.profiles)}<div><b>${esc(l.profiles.name)}</b><br><small class="muted">${esc(l.profiles.city || '')}</small></div></a>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+  ${wa && !own ? `<a class="btn p" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent('Olá! Vi seu anúncio no ACHEI: ' + l.title)}">WhatsApp</a>` : ''}
+  ${own ? `<a class="btn" href="#/edit/${id}">Editar</a>` : `<button class="btn" id="fav">${fv.data?.length ? '♥ Favoritado' : '♡ Favoritar'}</button><button class="btn" id="msg">Mensagem</button><button class="btn d" id="rep">Denunciar</button>`}</div></div></div>
+  <h2>Produtos semelhantes</h2><div class="grid">${sim.data?.map(card).join('') || '<p class="muted">Sem similares.</p>'}</div>`;
+  if (own) return;
+  $('#fav').onclick = async () => { if (!need()) return; const on = $('#fav').textContent.includes('♥');
+    const r = on ? await sb.from('favorites').delete().eq('user_id', me.id).eq('listing_id', id) : await sb.from('favorites').insert({ user_id: me.id, listing_id: id });
+    if (r.error) return toast(r.error.message); $('#fav').textContent = on ? '♡ Favoritar' : '♥ Favoritado' };
+  $('#msg').onclick = async () => { if (!need()) return; const b = prompt('Sua mensagem:'); if (!b?.trim()) return;
+    const r = await sb.from('messages').insert({ listing_id: id, sender_id: me.id, receiver_id: l.user_id, body: b.trim() }); toast(r.error ? r.error.message : 'Mensagem enviada') };
+  $('#rep').onclick = async () => { if (!need()) return; const b = prompt('Motivo da denúncia:'); if (!b || b.length < 5) return;
+    const r = await sb.from('reports').insert({ listing_id: id, reporter_id: me.id, reason: b }); toast(r.error ? 'Você já denunciou este anúncio' : 'Denúncia enviada') };
+}
+
+async function seller(id) {
+  const [p, ls, rv] = await Promise.all([sb.from('profiles').select('id,name,avatar_url,city,created_at').eq('id', id).single(), sb.from('listings').select('*').eq('user_id', id).in('status', ['active', 'sold']).order('created_at', { ascending: false }), sb.from('reviews').select('*,profiles!reviews_reviewer_id_fkey(name)').eq('seller_id', id).order('created_at', { ascending: false })]);
+  if (!p.data) return page('Perfil não encontrado', '');
+  const avg = rv.data?.length ? (rv.data.reduce((s, r) => s + r.rating, 0) / rv.data.length).toFixed(1) : '–';
+  app.innerHTML = `<div class="row" style="justify-content:flex-start;gap:14px">${avatar(p.data)}<div><h1 style="font-size:22px">${esc(p.data.name)}</h1><span class="muted">${esc(p.data.city || '')} · desde ${ago(p.data.created_at)} · ★ ${avg} (${rv.data?.length || 0})</span></div>${me && me.id != id ? '<button class="btn s" id="rv">Avaliar</button>' : ''}</div>
+  <h2>Anúncios</h2><div class="grid">${ls.data?.map(card).join('') || '<p class="muted">Nenhum anúncio.</p>'}</div>
+  <h2>Avaliações</h2>${rv.data?.map(r => `<div class="row"><span>★ ${r.rating} · ${esc(r.profiles?.name)}<br><small class="muted">${esc(r.comment || '')}</small></span></div>`).join('') || '<p class="muted">Sem avaliações.</p>'}`;
+  if ($('#rv')) $('#rv').onclick = async () => { const n = +prompt('Nota de 1 a 5:'); if (!(n >= 1 && n <= 5)) return; const c = prompt('Comentário (opcional):') || '';
+    const r = await sb.from('reviews').insert({ seller_id: id, reviewer_id: me.id, rating: Math.round(n), comment: c.slice(0, 500) }); toast(r.error ? 'Você já avaliou este vendedor' : 'Avaliação enviada'); if (!r.error) seller(id) };
+}
+
+async function form(id) {
+  if (!need()) return;
+  await loadCats();
+  let l = {}; if (id) { l = (await sb.from('listings').select('*').eq('id', id).single()).data || {}; if (l.user_id != me.id) return page('Sem permissão', 'Você só pode editar seus próprios anúncios.') }
+  app.innerHTML = `<form class="f" id="lf"><h2>${id ? 'Editar anúncio' : 'Anunciar grátis'}</h2>
+  <input name="title" placeholder="Título" required minlength="5" maxlength="100" value="${esc(l.title)}"><textarea name="description" rows="5" placeholder="Descrição" required minlength="10" maxlength="3000">${esc(l.description)}</textarea>
+  <input name="price" type="number" min="0" placeholder="Preço em ₲" required value="${l.price ?? ''}">
+  <select name="category_id" required><option value="">Categoria</option>${cats.map(c => `<option value="${c.id}" ${c.id == l.category_id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+  ${cats.length ? '' : '<p style="color:#c00;font-size:13px">Categorias não carregaram: ' + esc(catErr) + ' <a href="javascript:cats=[];form()"><u>Tentar de novo</u></a></p>'}<input name="subcategory" placeholder="Subcategoria" value="${esc(l.subcategory)}"><input name="city" placeholder="Cidade" required value="${esc(l.city)}">
+  <select name="department" required><option value="">Departamento</option>${opts(DEPTS, l.department)}</select><select name="condition">${opts(CONDS, l.condition)}</select>
+  ${id ? '' : '<label class="muted">Fotos (1 a 10)<input name="files" type="file" accept="image/*" multiple required></label>'}
+  ${id ? '' : '<p class="muted" style="font-size:13px">Anunciar é grátis. Quando o produto for vendido, o ACHEI cobra do vendedor uma taxa de 10% do valor do produto.</p>'}<button class="btn p" id="sv">${id ? 'Salvar' : 'Publicar'}</button></form>`;
+  $('#lf').onsubmit = async e => {
+    e.preventDefault(); const f = e.target, b = $('#sv'); b.disabled = true;
+    const d = { title: f.title.value.trim(), description: f.description.value.trim(), price: +f.price.value, category_id: +f.category_id.value, subcategory: f.subcategory.value.trim() || null, city: f.city.value.trim(), department: f.department.value, condition: f.condition.value };
+    try {
+      if (id) { const r = await sb.from('listings').update(d).eq('id', id); if (r.error) throw r.error; toast('Salvo'); return location.hash = '#/l/' + id }
+      const fl = [...f.files.files]; if (!fl.length || fl.length > 10) throw { message: 'Envie de 1 a 10 fotos' };
+      if (fl.some(x => !x.type.startsWith('image/') || x.size > 5e6)) throw { message: 'Use apenas imagens de até 5 MB' };
+      d.images = []; for (const x of fl) { const path = `${me.id}/${crypto.randomUUID()}.${x.name.split('.').pop()}`; const u = await sb.storage.from('listing-images').upload(path, x); if (u.error) throw u.error; d.images.push(sb.storage.from('listing-images').getPublicUrl(path).data.publicUrl) }
+      d.user_id = me.id; const r = await sb.from('listings').insert(d).select().single(); if (r.error) throw r.error; toast('Anúncio publicado!'); location.hash = '#/l/' + r.data.id;
+    } catch (x) { toast(x.message); b.disabled = false }
+  };
+}
+
+async function panel(tab = 'ads') {
+  if (!need()) return;
+  const T = { ads: 'Meus anúncios', fav: 'Favoritos', msg: 'Mensagens', prof: 'Dados pessoais', com: 'Comissões' };
+  const tabs = `<div class="tabs">${Object.entries(T).map(([k, v]) => `<button class="btn ${k == tab ? 'p' : ''}" onclick="panel('${k}')">${v}</button>`).join('')}</div>`;
+  if (tab == 'ads') { const { data } = await sb.from('listings').select('*').eq('user_id', me.id).order('created_at', { ascending: false });
+    app.innerHTML = tabs + (data?.map(l => `<div class="row"><a href="#/l/${l.id}"><b>${esc(l.title)}</b> · ${gs(l.price)} · <small class="muted">${l.status}</small></a><span><a class="btn s" href="#/edit/${l.id}">Editar</a> ${l.status == 'active' ? `<button class="btn s" onclick="mark('${l.id}','sold',${l.price})">Vendido</button>` : l.status == 'sold' ? `<button class="btn s" onclick="mark('${l.id}','active')">Reativar</button>` : ''} <button class="btn s d" onclick="del('${l.id}')">Excluir</button></span></div>`).join('') || '<p class="muted">Você ainda não anunciou.</p>') }
+  if (tab == 'com') { const [c, s] = await Promise.all([sb.from('commissions').select('*').eq('seller_id', me.id).order('created_at', { ascending: false }), sb.from('settings').select('value').eq('key', 'payment_info').maybeSingle()]);
+    const due = (c.data || []).filter(x => x.status == 'pending').reduce((t, x) => t + Number(x.amount), 0);
+    app.innerHTML = tabs + `<p><b>A pagar ao ACHEI: ${gs(due)}</b></p><p class="muted">Taxa de 10% do valor de cada produto vendido. Pagamento: ${esc(s.data?.value || 'combine com o administrador')}</p>` + (c.data?.map(x => `<div class="row"><span>${esc(x.title)} · ${gs(x.amount)}</span><small class="muted">${x.status == 'paid' ? 'pago' : 'pendente'} · ${ago(x.created_at)}</small></div>`).join('') || '<p class="muted">Nenhuma comissão.</p>') }
+  if (tab == 'fav') { const { data } = await sb.from('favorites').select('listings(*)').eq('user_id', me.id);
+    app.innerHTML = tabs + `<div class="grid">${data?.filter(x => x.listings).map(x => card(x.listings)).join('') || '<p class="muted">Sem favoritos.</p>'}</div>` }
+  if (tab == 'msg') { const { data } = await sb.from('messages').select('*,listings(title),s:profiles!messages_sender_id_fkey(name),r:profiles!messages_receiver_id_fkey(name)').order('created_at', { ascending: false }).limit(50);
+    app.innerHTML = tabs + (data?.map(m => { const mine = m.sender_id == me.id, other = mine ? m.receiver_id : m.sender_id;
+      return `<div class="row"><span><b>${mine ? 'Para ' + esc(m.r?.name) : esc(m.s?.name)}</b> · <small class="muted">${esc(m.listings?.title)}</small><br>${esc(m.body)}</span><button class="btn s" onclick="reply('${m.listing_id}','${other}')">Responder</button></div>` }).join('') || '<p class="muted">Sem mensagens.</p>');
+    window.__ch?.unsubscribe(); window.__ch = sb.channel('inbox').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => panel('msg')).subscribe() }
+  if (tab == 'prof') { app.innerHTML = tabs + `<form class="f" id="pf"><input name="name" value="${esc(prof.name)}" placeholder="Nome" required><input name="city" value="${esc(prof.city)}" placeholder="Cidade"><input name="whatsapp" value="${esc(prof.whatsapp)}" placeholder="WhatsApp com DDI (ex: 595981123456)"><label class="muted">Foto de perfil<input name="av" type="file" accept="image/*"></label><button class="btn p">Salvar</button><p class="muted">Conta: ${esc(me.email)} (não é exibido publicamente)</p><button type="button" class="btn d" onclick="sb.auth.resetPasswordForEmail(me.email).then(()=>toast('Link enviado ao seu e-mail'))">Redefinir senha</button></form>`;
+    $('#pf').onsubmit = async e => { e.preventDefault(); const f = e.target, d = { name: f.name.value.trim(), city: f.city.value.trim() || null, whatsapp: f.whatsapp.value.replace(/\D/g, '') || null };
+      if (f.av.files[0]) { const path = `${me.id}/avatar-${Date.now()}`; const u = await sb.storage.from('listing-images').upload(path, f.av.files[0]); if (!u.error) d.avatar_url = sb.storage.from('listing-images').getPublicUrl(path).data.publicUrl }
+      const r = await sb.from('profiles').update(d).eq('id', me.id); if (!r.error) Object.assign(prof, d); toast(r.error ? r.error.message : 'Perfil salvo') } }
+}
+async function mark(id, status, price) { if (status == 'sold' && !confirm('Ao marcar como vendido, será registrada a taxa do ACHEI: 10% = ' + gs(Math.round(price * 0.1)) + '. Continuar?')) return; const r = await sb.from('listings').update({ status }).eq('id', id); if (r.error) toast(r.error.message); panel('ads') }
+async function del(id) { if (!confirm('Excluir este anúncio?')) return; const r = await sb.from('listings').delete().eq('id', id); toast(r.error ? r.error.message : 'Excluído'); panel('ads') }
+async function reply(lid, to) { const b = prompt('Resposta:'); if (b?.trim()) { const r = await sb.from('messages').insert({ listing_id: lid, sender_id: me.id, receiver_id: to, body: b.trim() }); toast(r.error ? r.error.message : 'Enviada') } }
+
+async function admin() {
+  if (!prof?.is_admin) return page('Acesso restrito', 'Apenas administradores.');
+  const cnt = (t, f) => { let q = sb.from(t).select('*', { count: 'exact', head: true }); return (f ? f(q) : q).then(r => r.count ?? 0) };
+  const since = new Date(Date.now() - 7 * 864e5).toISOString();
+  const [u, a, pend, rep, sold, nu, na, ls, rs, us] = await Promise.all([cnt('profiles'), cnt('listings'), cnt('listings', q => q.eq('status', 'pending')), cnt('reports'), cnt('listings', q => q.eq('status', 'sold')), cnt('profiles', q => q.gte('created_at', since)), cnt('listings', q => q.gte('created_at', since)), sb.from('listings').select('*').neq('status', 'removed').order('created_at', { ascending: false }).limit(30), sb.from('reports').select('*,listings(title)').order('created_at', { ascending: false }).limit(20), sb.from('profiles').select('*').order('created_at', { ascending: false }).limit(20)]);
+  const cm = (await sb.from('commissions').select('*,profiles(name)').order('created_at', { ascending: false }).limit(50)).data || [];
+  const pi = (await sb.from('settings').select('value').eq('key', 'payment_info').maybeSingle()).data?.value || '';
+  const sum = st => cm.filter(c => c.status == st).reduce((t, c) => t + Number(c.amount), 0);
+  const S = (n, l) => `<div class="stat"><b>${n}</b>${l}</div>`;
+  app.innerHTML = `<h2>Painel administrativo</h2><div class="stats">${S(u, 'Usuários')}${S(a, 'Anúncios')}${S(pend, 'Pendentes')}${S(rep, 'Denunciados')}${S(sold, 'Vendidos')}${S('+' + nu, 'Usuários (7 dias)')}${S('+' + na, 'Anúncios (7 dias)')}${S(gs(sum('pending')), 'Comissões a receber')}${S(gs(sum('paid')), 'Comissões recebidas')}</div>
+  <h2>Comissões (10% por venda)</h2><p class="muted">Dados de pagamento mostrados aos vendedores: ${esc(pi) || 'não definidos'} <button class="btn s" onclick="adm('pi')">Editar</button></p>${cm.map(c => `<div class="row"><span><b>${esc(c.profiles?.name)}</b> · ${esc(c.title)} · ${gs(c.amount)}<br><small class="muted">${c.status == 'paid' ? 'pago' : 'pendente'} · ${ago(c.created_at)}</small></span>${c.status == 'pending' ? `<button class="btn s" onclick="adm('cp','${c.id}')">Marcar pago</button>` : ''}</div>`).join('') || '<p class="muted">Nenhuma comissão ainda.</p>'}
+  <h2>Denúncias</h2>${rs.data?.map(r => `<div class="row"><span><a href="#/l/${r.listing_id}"><b>${esc(r.listings?.title)}</b></a><br><small class="muted">${esc(r.reason)}</small></span><span><button class="btn s d" onclick="adm('rm','${r.listing_id}')">Remover anúncio</button> <button class="btn s" onclick="adm('dr','${r.id}')">Descartar</button></span></div>`).join('') || '<p class="muted">Sem denúncias.</p>'}
+  <h2>Anúncios e destaques</h2>${ls.data?.map(l => `<div class="row"><a href="#/l/${l.id}">${esc(l.title)} <small class="muted">(${l.status})</small></a><span><button class="btn s" onclick="adm('ft','${l.id}',${!l.featured})">${l.featured ? 'Tirar destaque' : 'Destacar'}</button> ${l.status == 'pending' ? `<button class="btn s" onclick="adm('ok','${l.id}')">Aprovar</button>` : ''} <button class="btn s d" onclick="adm('rm','${l.id}')">Remover</button></span></div>`).join('')}
+  <h2>Categorias</h2>${cats.map(c => `<div class="row"><span>${c.icon} ${esc(c.name)}</span><button class="btn s d" onclick="adm('cd',${c.id})">Excluir</button></div>`).join('')}<button class="btn s" onclick="adm('ca')">+ Nova categoria</button>
+  <h2>Usuários recentes</h2>${us.data?.map(x => `<div class="row"><a href="#/u/${x.id}">${esc(x.name)}</a><small class="muted">${ago(x.created_at)}${x.is_admin ? ' · admin' : ''}</small></div>`).join('')}`;
+}
+async function adm(op, id, v) {
+  let r; if (op == 'rm') r = await sb.from('listings').update({ status: 'removed' }).eq('id', id);
+  if (op == 'ok') r = await sb.from('listings').update({ status: 'active' }).eq('id', id);
+  if (op == 'ft') r = await sb.from('listings').update({ featured: v }).eq('id', id);
+  if (op == 'dr') r = await sb.from('reports').delete().eq('id', id);
+  if (op == 'cp') r = await sb.from('commissions').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id);
+  if (op == 'pi') { const v = prompt('Dados de pagamento (Pix, conta, WhatsApp...):'); if (v === null) return; r = await sb.from('settings').upsert({ key: 'payment_info', value: v.slice(0, 500) }); }
+  if (op == 'cd') { if (!confirm('Excluir categoria?')) return; r = await sb.from('categories').delete().eq('id', id); cats = [] }
+  if (op == 'ca') { const n = prompt('Nome da categoria:'); if (!n) return; r = await sb.from('categories').insert({ name: n.trim(), icon: prompt('Emoji:') || '📦' }); cats = [] }
+  if (r?.error) toast(r.error.message); if (!cats.length) cats = (await sb.from('categories').select('*').order('id')).data; admin();
+}
+</script></body></html>
